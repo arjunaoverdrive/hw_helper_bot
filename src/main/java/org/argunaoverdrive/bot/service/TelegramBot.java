@@ -2,7 +2,7 @@ package org.argunaoverdrive.bot.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.argunaoverdrive.bot.config.BotConfig;
-import org.argunaoverdrive.bot.model.DayOfWeek;
+import org.argunaoverdrive.bot.model.WeekDays;
 import org.argunaoverdrive.bot.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,10 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 
 @Slf4j
@@ -116,20 +113,20 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void createSubscribeMessage(int data, long chatId, SendMessage message) {
-        DayOfWeek[] values = DayOfWeek.values();
-        DayOfWeek dayToNotify = values[data];
+        WeekDays[] values = WeekDays.values();
+        WeekDays dayToNotify = values[data];
         notifyUserOn(chatId, dayToNotify);
         message.setChatId(String.valueOf(chatId));
         message.setText("I will notify you on " + dayToNotify.getName());
     }
 
-    private void notifyUserOn(long chatId, DayOfWeek dayToNotify) {
+    private void notifyUserOn(long chatId, WeekDays dayToNotify) {
         notificationService.notifyOn(chatId, dayToNotify);
         log.info("Notify on " + dayToNotify.getName());
     }
 
     private InlineKeyboardMarkup addDaysOfWeekKeyboard() {
-        DayOfWeek[] values = DayOfWeek.values();
+        WeekDays[] values = WeekDays.values();
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
         List<InlineKeyboardButton> rowOne = new ArrayList<>();
@@ -139,7 +136,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         return keyboard;
     }
 
-    private List<InlineKeyboardButton> getRowOfButtons(DayOfWeek[] values, int from, int to) {
+    private List<InlineKeyboardButton> getRowOfButtons(WeekDays[] values, int from, int to) {
         List<InlineKeyboardButton> row = new ArrayList<>();
         for (int i = from; i < to; i++) {
             InlineKeyboardButton day = new InlineKeyboardButton();
@@ -250,19 +247,18 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void checkSubscriptions() {
+        log.info("checkSubscriptions invoked");
         TimerTask repeatedTask = new TimerTask() {
 
             @Override
             public void run() {
-                DayOfWeek today = getDayOfWeek();
+                WeekDays today = getDayOfWeek();
                 List<Long> subscriptionsList = notificationService.getSubscriptionsList(today);
 
                 String text = "Hi! It's high time you started completing your homework!" +
                         "\n\nRemember, 10 minutes a day is better than an hour once a week";
-                subscriptionsList.forEach(chatId -> {
-                    sendMessage(chatId, text);
-                    log.info("Sent notification to user " + chatId);
-                        }
+                subscriptionsList.forEach(chatId ->
+                    sendMessage(chatId, text)
                 );
             }
         };
@@ -272,24 +268,24 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private Date getDateToStart() {
-        LocalDateTime timeToWork = LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 45));
+        LocalDateTime timeToWork = LocalDateTime.of(LocalDate.now(), LocalTime.of(13, 20));
         return Date.from(timeToWork.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     private void startTimerThread(TimerTask repeatedTask, Date dateToWork) {
         Thread t = new Thread(()->{
             new Timer().scheduleAtFixedRate(repeatedTask, dateToWork, CHECK_PERIOD);
+            log.info("schedule a task");
         });
         t.start();
     }
 
-    private DayOfWeek getDayOfWeek() {
-        LocalDateTime now = LocalDateTime.now();
-        java.time.DayOfWeek dayOfWeek = now.getDayOfWeek();
-        String name = dayOfWeek.name();
-        Map<String, DayOfWeek> nameToDay = new HashMap<>();
-        Arrays.stream(DayOfWeek.values()).forEach(day -> nameToDay.put(dayOfWeek.name(), day));
-        DayOfWeek today = nameToDay.get(name);
-        return today;
+    private WeekDays getDayOfWeek() {
+        LocalDate today = LocalDate.now();
+        DayOfWeek todayDayOfWeek = today.getDayOfWeek();
+        String todayName = todayDayOfWeek.name();
+        Map<String, WeekDays> nameToDay = new HashMap<>();
+        Arrays.stream(WeekDays.values()).forEach(day -> nameToDay.put(day.getName().toUpperCase(), day));
+        return nameToDay.get(todayName);
     }
 }

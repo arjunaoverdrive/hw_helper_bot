@@ -12,7 +12,7 @@ public class DayToNotify {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    private DayOfWeek day;
+    private WeekDays day;
 
     @ManyToOne
     @JoinColumn(name = "chat_id", referencedColumnName = "chat_id")
@@ -26,11 +26,11 @@ public class DayToNotify {
         return id;
     }
 
-    public DayOfWeek getDay() {
+    public WeekDays getDay() {
         return day;
     }
 
-    public void setDay(DayOfWeek day) {
+    public void setDay(WeekDays day) {
         this.day = day;
     }
 

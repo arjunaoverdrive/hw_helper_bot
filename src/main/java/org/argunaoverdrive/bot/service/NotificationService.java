@@ -2,7 +2,7 @@ package org.argunaoverdrive.bot.service;
 
 import org.argunaoverdrive.bot.DAO.DayToNotifyRepository;
 import org.argunaoverdrive.bot.DAO.SubscribedUserRepository;
-import org.argunaoverdrive.bot.model.DayOfWeek;
+import org.argunaoverdrive.bot.model.WeekDays;
 import org.argunaoverdrive.bot.model.DayToNotify;
 import org.argunaoverdrive.bot.model.SubscribedUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class NotificationService {
 
     }
 
-    public void notifyOn(long chatId, DayOfWeek dayToNotify) {
+    public void notifyOn(long chatId, WeekDays dayToNotify) {
         DayToNotify day = new DayToNotify();
         day.setDay(dayToNotify);
         SubscribedUser subscribedUser = subscribedUserRepository.findById(chatId).orElse(subscribe(chatId));
@@ -58,7 +58,7 @@ public class NotificationService {
         dayToNotifyRepository.save(day);
     }
 
-    public List<Long> getSubscriptionsList(DayOfWeek day) {
+    public List<Long> getSubscriptionsList(WeekDays day) {
         List<DayToNotify> days = dayToNotifyRepository.findAllByDay(day);
         List<Long>subscribers = days.stream()
                 .map(DayToNotify::getSubscribedUser)

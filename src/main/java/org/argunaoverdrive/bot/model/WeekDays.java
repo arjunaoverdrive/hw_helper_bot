@@ -1,6 +1,6 @@
 package org.argunaoverdrive.bot.model;
 
-public enum DayOfWeek{
+public enum WeekDays {
     SUN("Sunday"),
     MON("Monday"),
     TUE("Tueday"),
@@ -10,7 +10,7 @@ public enum DayOfWeek{
     SAT("Saturday");
     private final String name;
 
-    DayOfWeek(String name) {
+    WeekDays(String name) {
         this.name = name;
     }
 
